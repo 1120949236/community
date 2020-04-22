@@ -1,6 +1,5 @@
 package com.usx.community.controller;
 
-import com.fasterxml.jackson.databind.util.EnumResolver;
 import com.usx.community.service.AlphaService;
 import com.usx.community.util.CommunityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,6 +183,15 @@ public class AlphaController {
         System.out.println(session.getAttribute("id"));
         System.out.println(session.getAttribute("name"));
         return "get session";
+    }
+
+    // ajax示例
+    @RequestMapping(path = "/ajax", method = RequestMethod.POST)
+    @ResponseBody
+    public String testAjax(String name, int age) {
+        System.out.println(name);
+        System.out.println(age);
+        return CommunityUtil.getJSONString(0, "操作成功！");
     }
 
 }
