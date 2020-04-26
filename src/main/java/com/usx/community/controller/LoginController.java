@@ -4,6 +4,7 @@ import com.google.code.kaptcha.Producer;
 import com.usx.community.entity.User;
 import com.usx.community.service.UserService;
 import com.usx.community.util.CommunityConstant;
+import com.usx.community.util.HostHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,14 +40,25 @@ public class LoginController implements CommunityConstant {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
+    @Autowired
+    private HostHolder hostHolder;
+
     @RequestMapping(path = "/register", method = RequestMethod.GET)
     public String getRegisterPage() {
-        return "/site/register";
+        if (hostHolder.getUser() == null) {
+            return "/site/register";
+        } else {
+            return "/error/404";
+        }
     }
 
     @RequestMapping(path = "/login", method = RequestMethod.GET)
     public String getLoginPage() {
-        return "/site/login";
+        if (hostHolder.getUser() == null) {
+            return "/site/login";
+        } else {
+            return "/error/404";
+        }
     }
 
     @RequestMapping(path = "/register", method = RequestMethod.POST)
@@ -132,5 +144,6 @@ public class LoginController implements CommunityConstant {
         userService.logout(ticket);
         return "redirect:/login";
     }
+
 
 }
