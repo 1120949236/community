@@ -1,7 +1,5 @@
 package com.usx.community.controller;
 
-import com.usx.community.annotation.LoginRequired;
-import com.usx.community.dao.UserMapper;
 import com.usx.community.entity.User;
 import com.usx.community.service.FollowService;
 import com.usx.community.service.LikeService;
@@ -54,13 +52,11 @@ public class UserController implements CommunityConstant {
     @Autowired
     private FollowService followService;
 
-    @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
     public String getSettingPage() {
         return "/site/setting";
     }
 
-    @LoginRequired
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
     public String uploadHeader(MultipartFile headerImage, Model model) {
         if (headerImage == null) {

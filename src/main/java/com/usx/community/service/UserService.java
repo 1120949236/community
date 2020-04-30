@@ -1,5 +1,6 @@
 package com.usx.community.service;
 
+import com.google.code.kaptcha.Producer;
 import com.usx.community.dao.LoginTicketMapper;
 import com.usx.community.dao.UserMapper;
 import com.usx.community.entity.LoginTicket;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import javax.servlet.http.HttpSession;
 import java.util.*;
 
 @Service
@@ -25,6 +27,9 @@ public class UserService implements CommunityConstant {
 
     @Autowired
     private MailClient mailClient;
+
+    @Autowired
+    private Producer codeProducer;
 
     @Autowired
     private TemplateEngine templateEngine;
@@ -40,6 +45,10 @@ public class UserService implements CommunityConstant {
 
     public User findUserById(int id) {
         return userMapper.selectById(id);
+    }
+
+    public User findUserByEmail(String email) {
+        return userMapper.selectByEmail(email);
     }
 
     public Map<String, Object> register(User user) {
@@ -94,6 +103,31 @@ public class UserService implements CommunityConstant {
         context.setVariable("url", url);
         String content = templateEngine.process("/mail/activation", context);
         mailClient.sendMail(user.getEmail(), "激活账号", content);
+
+        return map;
+    }
+
+    public int updateCode(int id, String code) {
+        return userMapper.updateCode(id, code);
+    }
+
+    public Map<String, Object> forget(String email) {
+        Map<String, Object> map = new HashMap<>();
+        User user = this.findUserByEmail(email);
+        if (user == null) {
+            map.put("emailMsg", "该邮箱尚未被注册！");
+            return map;
+        }
+
+        // 生成验证码
+        String text = codeProducer.createText();
+        map.put("code", text);
+        // 将验证码通过邮件发送给用户
+        Context context = new Context();
+        context.setVariable("email", email);
+        context.setVariable("code", text);
+        String content = templateEngine.process("/mail/forget", context);
+        mailClient.sendMail(email, "验证码", content);
 
         return map;
     }

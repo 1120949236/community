@@ -47,4 +47,8 @@
         update user set password = #{password} where id = #{id}
     </update>
 
+    <update id="updateCode">
+        update user set activation_code = #{code} where id = #{id}
+    </update>
+
 </mapper>

@@ -16,7 +16,7 @@ function send_letter() {
             if(data.code == 0) {
                 $("#hintBody").text("发送成功!");
             } else {
-                $("#hintBody").text(data.msg);
+                $("#hintBody").text("该邮箱未被注册!");
             }
 
             $("#hintModal").modal("show");

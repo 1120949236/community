@@ -4,7 +4,9 @@ import com.google.code.kaptcha.Producer;
 import com.usx.community.entity.User;
 import com.usx.community.service.UserService;
 import com.usx.community.util.CommunityConstant;
+import com.usx.community.util.CommunityUtil;
 import com.usx.community.util.HostHolder;
+import com.usx.community.util.MailClient;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +15,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
@@ -43,6 +44,10 @@ public class LoginController implements CommunityConstant {
 
     @Autowired
     private HostHolder hostHolder;
+
+
+    @Value("${community.path.domain}")
+    private String domain;
 
     @RequestMapping(path = "/register", method = RequestMethod.GET)
     public String getRegisterPage() {
@@ -147,5 +152,46 @@ public class LoginController implements CommunityConstant {
         return "redirect:/login";
     }
 
+    @RequestMapping(path = "/forget", method = RequestMethod.GET)
+    public String  getForgetPage() {
+        if (hostHolder.getUser() == null) {
+            return "/site/forget";
+        } else {
+            return "/error/404";
+        }
+    }
+
+    @RequestMapping(path = "/forget", method = RequestMethod.POST)
+    public String resetPassword(String newPassword, String code, String email, Model model) {
+        if (StringUtils.isBlank(newPassword) || StringUtils.isBlank(code)) {
+            model.addAttribute("passwordMsg", "密码或验证码不能为空！");
+            return "/site/forget";
+        }
+        if (StringUtils.isBlank(email)) {
+            model.addAttribute("emailMsg", "邮箱不能为空！");
+            return "/site/forget";
+        }
+        User user = userService.findUserByEmail(email);
+        if (code != user.getActivationCode()) {
+            model.addAttribute("codeMsg", "验证码错误！");
+            return "/site/forget";
+        }
+        model.addAttribute("user", user);
+        userService.updatePassword(user.getId(), newPassword);
+        return "redirect:/login";
+    }
+
+    @RequestMapping(path = "/sendCode", method = RequestMethod.POST)
+    @ResponseBody
+    private String sendCode(String email) {
+        Map<String, Object> map = userService.forget(email);
+        String confirm = (String) map.get("code");
+        User user = userService.findUserByEmail(email);
+        if (user == null) {
+            return CommunityUtil.getJSONString(1);
+        }
+        userService.updateCode(user.getId(), confirm);
+        return CommunityUtil.getJSONString(0);
+    }
 
 }
