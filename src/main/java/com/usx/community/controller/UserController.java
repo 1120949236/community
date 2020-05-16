@@ -1,6 +1,9 @@
 package com.usx.community.controller;
 
+import com.usx.community.entity.DiscussPost;
+import com.usx.community.entity.Page;
 import com.usx.community.entity.User;
+import com.usx.community.service.DiscussPostService;
 import com.usx.community.service.FollowService;
 import com.usx.community.service.LikeService;
 import com.usx.community.service.UserService;
@@ -24,6 +27,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/user")
@@ -52,6 +59,9 @@ public class UserController implements CommunityConstant {
     @Autowired
     private FollowService followService;
 
+    @Autowired
+    private DiscussPostService discussPostService;
+
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
     public String getSettingPage() {
         return "/site/setting";
@@ -74,7 +84,7 @@ public class UserController implements CommunityConstant {
         // 生成随机文件名
         fileName = CommunityUtil.generateUUID() + suffix;
         // 确定文件存放的路径
-        File dest = new File(uploadPath + "/" +fileName);
+        File dest = new File(uploadPath + "/" + fileName);
         try {
             // 存储文件
             headerImage.transferTo(dest);
@@ -105,7 +115,7 @@ public class UserController implements CommunityConstant {
         ) {
             byte[] buffer = new byte[1024];
             int b = 0;
-            while ((b = fis.read(buffer)) != -1){
+            while ((b = fis.read(buffer)) != -1) {
                 os.write(buffer, 0, b);
             }
         } catch (IOException e) {
@@ -152,13 +162,42 @@ public class UserController implements CommunityConstant {
         long followerCount = followService.findFollowerCount(ENTITY_TYPE_USER, userId);
         model.addAttribute("followerCount", followerCount);
         // 是否已关注
-        boolean hasFollowed =false;
+        boolean hasFollowed = false;
         if (hostHolder.getUser() != null) {
             hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
         }
         model.addAttribute("hasFollowed", hasFollowed);
 
         return "/site/profile";
+    }
+
+    // 我的帖子
+    @RequestMapping(path = "/profile/myposts", method = RequestMethod.GET)
+    public String getMyPosts(Model model, Page page) {
+        User user = hostHolder.getUser();
+        model.addAttribute("user", user);
+
+        // 分页信息
+        page.setLimit(5);
+        page.setPath("/profile/myposts");
+        page.setRows(discussPostService.findMyPostCount(user.getId()));
+        // 获取帖子列表
+        List<DiscussPost> list = discussPostService
+                .selectPostsByMyId(user.getId(), page.getOffset(), page.getLimit());
+        List<Map<String, Object>> discussPosts = new ArrayList<>();
+        if (list != null) {
+            for (DiscussPost post : list) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("post", post);
+                discussPosts.add(map);
+                long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, post.getId());
+                map.put("likeCount", likeCount);
+            }
+            long postCount = discussPostService.findMyPostCount(user.getId());
+            model.addAttribute("postCount", postCount);
+        }
+        model.addAttribute("discussPosts", discussPosts);
+        return "/site/my-post";
     }
 
 }

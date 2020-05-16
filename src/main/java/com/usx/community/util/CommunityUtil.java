@@ -49,5 +49,4 @@ public class CommunityUtil {
         map.put("age", "22");
         System.out.println(getJSONString(0, "wjsn", map));
     }
-
 }

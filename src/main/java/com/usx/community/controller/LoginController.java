@@ -172,7 +172,7 @@ public class LoginController implements CommunityConstant {
             return "/site/forget";
         }
         User user = userService.findUserByEmail(email);
-        if (code != user.getActivationCode()) {
+        if (!code.equals(user.getActivationCode())) {
             model.addAttribute("codeMsg", "验证码错误！");
             return "/site/forget";
         }

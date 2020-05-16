@@ -62,4 +62,12 @@ public class DiscussPostService {
         return discussPostMapper.updateScore(id, score);
     }
 
+    public List<DiscussPost> selectPostsByMyId(int userId, int offset, int limit) {
+        return discussPostMapper.selectPostsByMyId(userId, offset, limit);
+    }
+
+    public int findMyPostCount(int userId) {
+        return discussPostMapper.findMyPostCount(userId);
+    }
+
 }

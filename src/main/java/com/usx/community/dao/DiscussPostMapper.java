@@ -27,4 +27,8 @@ public interface DiscussPostMapper {
 
     int updateScore(int id, double score);
 
+    List<DiscussPost> selectPostsByMyId(int userId, int offset, int limit);
+
+    int findMyPostCount(int userId);
+
 }

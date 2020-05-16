@@ -67,5 +67,17 @@
         update discuss_post set score = #{score}
         where id = #{id}
     </update>
-    
+
+    <select id="selectPostsByMyId" resultType="DiscussPost">
+        select <include refid="selectFields"></include>
+        from discuss_post
+        where status != 2
+        and user_id = #{userId}
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="findMyPostCount" resultType="int">
+        select count(user_id) from discuss_post where status != 2 and user_id = #{userId}
+    </select>
+
 </mapper>
